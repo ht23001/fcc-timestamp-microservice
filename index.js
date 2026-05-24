@@ -18,13 +18,38 @@ app.get("/", function (req, res) {
   res.sendFile(__dirname + '/views/index.html');
 });
 
+// MICROSERVICIO DE TIMESTAMP 
+app.get("/api/:date?", (req, res) => {
+  const dateParam = req.params.date; 
+  let date;
 
-// your first API endpoint... 
-app.get("/api/hello", function (req, res) {
-  res.json({greeting: 'hello API'});
+  // Si no envían parámetro, usamos la fecha actual
+  if (!dateParam) {
+    date = new Date();
+  } else {
+    //  Comprobamos si el parámetro contiene solo números (es Unix)
+    const isUnix = /^\d+$/.test(dateParam);
+    
+    if (isUnix) {
+      // Convertimos el string numérico a un entero base 10 antes de parsearlo
+      date = new Date(parseInt(dateParam, 10));
+    } else {
+      // Es una cadena de fecha normal
+      date = new Date(dateParam);
+    }
+  }
+
+  // Validación: Comprobamos si el objeto Date es inválido (Ojo con la 'D' mayúscula)
+  if (date.toString() === "Invalid Date") {
+    return res.json({ error: "Invalid Date" });
+  }
+
+  // Si pasa la validación, respondemos con el JSON esperado
+  res.json({
+    unix: date.getTime(), 
+    utc: date.toUTCString()
+  });
 });
-
-
 
 // Listen on port set in environment variable or default to 3000
 var listener = app.listen(process.env.PORT || 3000, function () {
